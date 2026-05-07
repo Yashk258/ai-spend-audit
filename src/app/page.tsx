@@ -1,5 +1,6 @@
 import Navbar from "@/components/navbar";
 import FeatureCard from "@/components/feature-card";
+import SpendForm from "@/components/spend-form";
 
 export default function Home() {
   return (
@@ -45,6 +46,7 @@ export default function Home() {
           description="Compare your AI spending efficiency against similar startup teams."
         />
       </section>
+      <SpendForm />
     </main>
   );
 }
