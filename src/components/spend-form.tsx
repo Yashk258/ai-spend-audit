@@ -3,12 +3,17 @@
 import { useEffect, useState } from "react";
 import { tools } from "@/data/tools";
 import ToolEntry from "@/components/tool-entry";
+
 import {
   generateAudit,
   AuditResult,
 } from "@/lib/audit-engine";
 
 export default function SpendForm() {
+  /*
+    Existing single-tool state
+    (kept temporarily for stability)
+  */
   const [selectedTool, setSelectedTool] =
     useState("ChatGPT");
 
@@ -26,6 +31,20 @@ export default function SpendForm() {
 
   const [auditResult, setAuditResult] =
     useState<AuditResult | null>(null);
+
+  /*
+    Future multi-tool audit support
+  */
+  const [entries, setEntries] = useState([
+    {
+      id: 1,
+      tool: "ChatGPT",
+      plan: "Plus",
+      monthlySpend: "",
+      teamSize: "",
+      useCase: "Coding",
+    },
+  ]);
 
   /*
     Load saved form values
@@ -95,6 +114,23 @@ export default function SpendForm() {
     setSelectedPlan(
       tools[tool as keyof typeof tools][0]
     );
+  };
+
+  /*
+    Add new audit entry
+  */
+  const handleAddEntry = () => {
+    setEntries((prev) => [
+      ...prev,
+      {
+        id: Date.now(),
+        tool: "ChatGPT",
+        plan: "Plus",
+        monthlySpend: "",
+        teamSize: "",
+        useCase: "Coding",
+      },
+    ]);
   };
 
   /*
@@ -249,7 +285,11 @@ export default function SpendForm() {
         </div>
 
         {/* Add Tool Button */}
-        <button className="rounded-2xl border border-white/10 bg-black/40 px-6 py-4 text-white transition hover:border-white/20">
+        <button
+          onClick={handleAddEntry}
+          type="button"
+          className="rounded-2xl border border-white/10 bg-black/40 px-6 py-4 text-white transition hover:border-white/20"
+        >
           + Add Another Tool
         </button>
 
@@ -260,6 +300,16 @@ export default function SpendForm() {
         >
           Generate Audit
         </button>
+      </div>
+
+      {/* Dynamic Tool Entries */}
+      <div className="mt-10 grid gap-6">
+        {entries.map((entry, index) => (
+          <ToolEntry
+            key={entry.id}
+            index={index}
+          />
+        ))}
       </div>
 
       {/* Empty State */}
@@ -277,9 +327,7 @@ export default function SpendForm() {
           </p>
         </div>
       )}
-        <div className="mt-10">
-      <ToolEntry index={0} />
-    </div>
+
       {/* Results */}
       {auditResult && (
         <>
@@ -367,7 +415,6 @@ export default function SpendForm() {
 
             {/* Savings Cards */}
             <div className="mt-6 grid gap-4 md:grid-cols-2">
-              {/* Monthly */}
               <div className="rounded-3xl border border-white/10 bg-black/40 p-6">
                 <p className="text-sm uppercase tracking-wide text-gray-400">
                   Monthly Savings
@@ -387,7 +434,6 @@ export default function SpendForm() {
                 </p>
               </div>
 
-              {/* Yearly */}
               <div className="rounded-3xl border border-white/10 bg-black/40 p-6">
                 <p className="text-sm uppercase tracking-wide text-gray-400">
                   Annual Savings
@@ -411,8 +457,8 @@ export default function SpendForm() {
             <p className="mt-6 text-sm leading-relaxed text-gray-400">
               Optimizing AI
               infrastructure costs can
-              significantly extend
-              startup runway and improve
+              significantly extend startup
+              runway and improve
               operational efficiency.
             </p>
 
