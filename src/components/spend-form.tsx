@@ -53,6 +53,30 @@ export default function SpendForm() {
   }, [entries]);
 
   /*
+    Total calculations
+  */
+  const totalMonthlySpend = entries.reduce(
+    (total, entry) =>
+      total +
+      Number(entry.monthlySpend || 0),
+    0
+  );
+
+  const totalTeamSize = entries.reduce(
+    (total, entry) =>
+      total +
+      Number(entry.teamSize || 0),
+    0
+  );
+
+  /*
+    Dynamic executive summary
+  */
+  const executiveSummary =
+    auditResult &&
+    `Your team is currently spending approximately $${totalMonthlySpend} per month across ${entries.length} AI tooling subscriptions. Based on current usage patterns and team sizing, there may be opportunities to optimize recurring software costs while maintaining productivity and collaboration efficiency.`;
+
+  /*
     Update entry values
   */
   const handleEntryChange = (
@@ -102,35 +126,61 @@ export default function SpendForm() {
   };
 
   /*
-    Generate audit
+    Generate combined audit
   */
-
-    const totalMonthlySpend = entries.reduce(
-  (total, entry) =>
-    total +
-    Number(entry.monthlySpend || 0),
-  0
-);
-
-const totalTeamSize = entries.reduce(
-  (total, entry) =>
-    total +
-    Number(entry.teamSize || 0),
-  0
-);
-
-
   const handleGenerateAudit = () => {
-    const highestRiskEntry =
-  entries[0];
+    const auditResults = entries.map(
+      (entry) =>
+        generateAudit(
+          entry.tool,
+          entry.plan,
+          Number(entry.teamSize)
+        )
+    );
 
-const result = generateAudit(
-  highestRiskEntry.tool,
-  highestRiskEntry.plan,
-  totalTeamSize
-);
+    const totalMonthlySavings =
+      auditResults.reduce(
+        (total, result) =>
+          total + result.monthlySavings,
+        0
+      );
 
-    setAuditResult(result);
+    const totalYearlySavings =
+      auditResults.reduce(
+        (total, result) =>
+          total + result.yearlySavings,
+        0
+      );
+
+    const highestRisk =
+      auditResults.some(
+        (result) =>
+          result.riskLevel === "High"
+      )
+        ? "High"
+        : auditResults.some(
+              (result) =>
+                result.riskLevel ===
+                "Medium"
+            )
+          ? "Medium"
+          : "Low";
+
+    setAuditResult({
+      recommendation:
+        auditResults[0].recommendation,
+
+      monthlySavings:
+        totalMonthlySavings,
+
+      yearlySavings:
+        totalYearlySavings,
+
+      riskLevel: highestRisk,
+
+      reason:
+        "Combined audit generated across multiple AI tools and subscriptions.",
+    });
   };
 
   return (
@@ -224,13 +274,14 @@ const result = generateAudit(
                 <p className="mt-2 text-gray-400">
                   Potential yearly savings
                 </p>
+
+                <p className="mt-1 text-sm text-gray-500">
+                  Current estimated
+                  monthly AI spend: $
+                  {totalMonthlySpend}
+                </p>
               </div>
 
-              <p className="mt-1 text-sm text-gray-500">
-                Current estimated monthly AI spend:
-                ${totalMonthlySpend}
-              </p>
-              
               <div className="rounded-2xl border border-green-500/20 bg-green-500/5 px-5 py-4">
                 <p className="text-sm text-gray-400">
                   Optimization Status
@@ -367,6 +418,17 @@ const result = generateAudit(
                 feature utilization, and
                 startup team sizing
                 patterns.
+              </p>
+            </div>
+
+            {/* Executive Summary */}
+            <div className="mt-6 rounded-2xl border border-white/10 bg-black/30 p-5">
+              <p className="text-sm uppercase tracking-wide text-gray-500">
+                Executive Summary
+              </p>
+
+              <p className="mt-3 leading-relaxed text-gray-300">
+                {executiveSummary}
               </p>
             </div>
 
