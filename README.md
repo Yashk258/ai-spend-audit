@@ -1,3 +1,9 @@
+
+
+## Live Demo
+
+https://ai-spend-audit-snowy-eight.vercel.app
+
 # AI Spend Audit
 
 AI Spend Audit is a SaaS-style dashboard that helps startups analyze AI tooling costs, identify optimization opportunities, and estimate savings across multiple AI subscriptions.
