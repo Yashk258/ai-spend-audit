@@ -104,14 +104,31 @@ export default function SpendForm() {
   /*
     Generate audit
   */
-  const handleGenerateAudit = () => {
-    const firstEntry = entries[0];
 
-    const result = generateAudit(
-      firstEntry.tool,
-      firstEntry.plan,
-      Number(firstEntry.teamSize)
-    );
+    const totalMonthlySpend = entries.reduce(
+  (total, entry) =>
+    total +
+    Number(entry.monthlySpend || 0),
+  0
+);
+
+const totalTeamSize = entries.reduce(
+  (total, entry) =>
+    total +
+    Number(entry.teamSize || 0),
+  0
+);
+
+
+  const handleGenerateAudit = () => {
+    const highestRiskEntry =
+  entries[0];
+
+const result = generateAudit(
+  highestRiskEntry.tool,
+  highestRiskEntry.plan,
+  totalTeamSize
+);
 
     setAuditResult(result);
   };
@@ -209,6 +226,11 @@ export default function SpendForm() {
                 </p>
               </div>
 
+              <p className="mt-1 text-sm text-gray-500">
+                Current estimated monthly AI spend:
+                ${totalMonthlySpend}
+              </p>
+              
               <div className="rounded-2xl border border-green-500/20 bg-green-500/5 px-5 py-4">
                 <p className="text-sm text-gray-400">
                   Optimization Status
