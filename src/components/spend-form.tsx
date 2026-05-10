@@ -91,9 +91,6 @@ export default function SpendForm() {
               ...entry,
               [field]: value,
 
-              /*
-                Reset plan when tool changes
-              */
               ...(field === "tool"
                 ? {
                     plan:
@@ -104,6 +101,19 @@ export default function SpendForm() {
                 : {}),
             }
           : entry
+      )
+    );
+  };
+
+  /*
+    Remove entry
+  */
+  const handleRemoveEntry = (
+    id: number
+  ) => {
+    setEntries((prev) =>
+      prev.filter(
+        (entry) => entry.id !== id
       )
     );
   };
@@ -129,12 +139,26 @@ export default function SpendForm() {
     Generate combined audit
   */
   const handleGenerateAudit = () => {
+    const hasInvalidEntry = entries.some(
+  (entry) =>
+    !entry.monthlySpend ||
+    !entry.teamSize
+);
+
+if (hasInvalidEntry) {
+  alert(
+    "Please complete all tool entries before generating audit."
+  );
+
+  return;
+}
     const auditResults = entries.map(
       (entry) =>
         generateAudit(
           entry.tool,
           entry.plan,
-          Number(entry.teamSize)
+          Number(entry.teamSize),
+          Number(entry.monthlySpend)
         )
     );
 
@@ -206,6 +230,7 @@ export default function SpendForm() {
             index={index}
             entry={entry}
             onChange={handleEntryChange}
+            onRemove={handleRemoveEntry}
           />
         ))}
       </div>
@@ -346,7 +371,6 @@ export default function SpendForm() {
 
             {/* Savings Cards */}
             <div className="mt-6 grid gap-4 md:grid-cols-2">
-              {/* Monthly */}
               <div className="rounded-3xl border border-white/10 bg-black/40 p-6">
                 <p className="text-sm uppercase tracking-wide text-gray-400">
                   Monthly Savings
@@ -366,7 +390,6 @@ export default function SpendForm() {
                 </p>
               </div>
 
-              {/* Yearly */}
               <div className="rounded-3xl border border-white/10 bg-black/40 p-6">
                 <p className="text-sm uppercase tracking-wide text-gray-400">
                   Annual Savings

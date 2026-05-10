@@ -17,25 +17,41 @@ interface ToolEntryProps {
     field: string,
     value: string
   ) => void;
+
+  onRemove: (id: number) => void;
 }
 
 export default function ToolEntry({
   index,
   entry,
   onChange,
+  onRemove,
 }: ToolEntryProps) {
   return (
     <div className="rounded-3xl border border-white/10 bg-black/30 p-6">
+      {/* Header */}
       <div className="mb-6 flex items-center justify-between">
         <h3 className="text-xl font-semibold text-white">
           Tool #{index + 1}
         </h3>
 
-        <span className="rounded-full bg-white/5 px-3 py-1 text-xs text-gray-400">
-          AI Stack Entry
-        </span>
+        <div className="flex items-center gap-3">
+          <span className="rounded-full bg-white/5 px-3 py-1 text-xs text-gray-400">
+            AI Stack Entry
+          </span>
+
+          <button
+            onClick={() =>
+              onRemove(entry.id)
+            }
+            className="rounded-full bg-red-500/10 px-3 py-1 text-xs text-red-400 transition hover:bg-red-500/20"
+          >
+            Remove
+          </button>
+        </div>
       </div>
 
+      {/* Form */}
       <div className="grid gap-5">
         {/* Tool */}
         <div>
@@ -52,7 +68,7 @@ export default function ToolEntry({
                 e.target.value
               )
             }
-            className="w-full rounded-2xl border border-white/10 bg-black px-4 py-3 text-white"
+            className="w-full rounded-2xl border border-white/10 bg-black px-4 py-3 text-white outline-none transition focus:border-white/30"
           >
             {Object.keys(tools).map((tool) => (
               <option
@@ -80,7 +96,7 @@ export default function ToolEntry({
                 e.target.value
               )
             }
-            className="w-full rounded-2xl border border-white/10 bg-black px-4 py-3 text-white"
+            className="w-full rounded-2xl border border-white/10 bg-black px-4 py-3 text-white outline-none transition focus:border-white/30"
           >
             {tools[
               entry.tool as keyof typeof tools
@@ -112,7 +128,7 @@ export default function ToolEntry({
               )
             }
             placeholder="200"
-            className="w-full rounded-2xl border border-white/10 bg-black px-4 py-3 text-white"
+            className="w-full rounded-2xl border border-white/10 bg-black px-4 py-3 text-white placeholder:text-gray-500 outline-none transition focus:border-white/30"
           />
         </div>
 
@@ -133,7 +149,7 @@ export default function ToolEntry({
               )
             }
             placeholder="5"
-            className="w-full rounded-2xl border border-white/10 bg-black px-4 py-3 text-white"
+            className="w-full rounded-2xl border border-white/10 bg-black px-4 py-3 text-white placeholder:text-gray-500 outline-none transition focus:border-white/30"
           />
         </div>
 
@@ -152,7 +168,7 @@ export default function ToolEntry({
                 e.target.value
               )
             }
-            className="w-full rounded-2xl border border-white/10 bg-black px-4 py-3 text-white"
+            className="w-full rounded-2xl border border-white/10 bg-black px-4 py-3 text-white outline-none transition focus:border-white/30"
           >
             <option value="Coding">
               Coding
