@@ -48,3 +48,21 @@ Implement localStorage persistence and start building the audit engine logic for
 
 ### Time Spent
 ~2 hours
+
+
+## Day 4
+
+### Work Completed
+- Added editable multi-tool audit entries
+- Implemented aggregated savings calculations
+- Added spend-based optimization logic
+- Added executive summaries
+- Implemented removable tool entries
+- Added validation for incomplete audit forms
+
+### Challenges
+- Managing dynamic React state across multiple tool entries
+- Aggregating calculations while keeping UI scalable
+
+### Time Spent
+~2 hour
