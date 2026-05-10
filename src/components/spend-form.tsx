@@ -11,29 +11,13 @@ import {
 
 export default function SpendForm() {
   /*
-    Existing single-tool state
-    (kept temporarily for stability)
+    Audit Results
   */
-  const [selectedTool, setSelectedTool] =
-    useState("ChatGPT");
-
-  const [selectedPlan, setSelectedPlan] =
-    useState(tools.ChatGPT[0]);
-
-  const [monthlySpend, setMonthlySpend] =
-    useState("");
-
-  const [teamSize, setTeamSize] =
-    useState("");
-
-  const [useCase, setUseCase] =
-    useState("Coding");
-
   const [auditResult, setAuditResult] =
     useState<AuditResult | null>(null);
 
   /*
-    Future multi-tool audit support
+    Multi-tool audit entries
   */
   const [entries, setEntries] = useState([
     {
@@ -47,77 +31,61 @@ export default function SpendForm() {
   ]);
 
   /*
-    Load saved form values
+    Load saved data
   */
   useEffect(() => {
     const savedData =
-      localStorage.getItem("audit-form");
+      localStorage.getItem("audit-entries");
 
     if (savedData) {
-      const parsedData = JSON.parse(savedData);
-
-      setSelectedTool(
-        parsedData.selectedTool || "ChatGPT"
-      );
-
-      setSelectedPlan(
-        parsedData.selectedPlan ||
-          tools.ChatGPT[0]
-      );
-
-      setMonthlySpend(
-        parsedData.monthlySpend || ""
-      );
-
-      setTeamSize(
-        parsedData.teamSize || ""
-      );
-
-      setUseCase(
-        parsedData.useCase || "Coding"
-      );
+      setEntries(JSON.parse(savedData));
     }
   }, []);
 
   /*
-    Persist form values
+    Persist entries
   */
   useEffect(() => {
     localStorage.setItem(
-      "audit-form",
-      JSON.stringify({
-        selectedTool,
-        selectedPlan,
-        monthlySpend,
-        teamSize,
-        useCase,
-      })
+      "audit-entries",
+      JSON.stringify(entries)
     );
-  }, [
-    selectedTool,
-    selectedPlan,
-    monthlySpend,
-    teamSize,
-    useCase,
-  ]);
+  }, [entries]);
 
   /*
-    Handle tool change
+    Update entry values
   */
-  const handleToolChange = (
-    e: React.ChangeEvent<HTMLSelectElement>
+  const handleEntryChange = (
+    id: number,
+    field: string,
+    value: string
   ) => {
-    const tool = e.target.value;
+    setEntries((prev) =>
+      prev.map((entry) =>
+        entry.id === id
+          ? {
+              ...entry,
+              [field]: value,
 
-    setSelectedTool(tool);
-
-    setSelectedPlan(
-      tools[tool as keyof typeof tools][0]
+              /*
+                Reset plan when tool changes
+              */
+              ...(field === "tool"
+                ? {
+                    plan:
+                      tools[
+                        value as keyof typeof tools
+                      ][0],
+                  }
+                : {}),
+            }
+          : entry
+      )
     );
   };
 
   /*
-    Add new audit entry
+    Add new tool entry
   */
   const handleAddEntry = () => {
     setEntries((prev) => [
@@ -137,17 +105,19 @@ export default function SpendForm() {
     Generate audit
   */
   const handleGenerateAudit = () => {
+    const firstEntry = entries[0];
+
     const result = generateAudit(
-      selectedTool,
-      selectedPlan,
-      Number(teamSize)
+      firstEntry.tool,
+      firstEntry.plan,
+      Number(firstEntry.teamSize)
     );
 
     setAuditResult(result);
   };
 
   return (
-    <div className="mx-auto mt-24 max-w-3xl rounded-3xl border border-white/10 bg-white/5 p-8 backdrop-blur-xl">
+    <div className="mx-auto mt-24 max-w-4xl rounded-3xl border border-white/10 bg-white/5 p-8 backdrop-blur-xl">
       {/* Header */}
       <div className="mb-8">
         <h2 className="text-4xl font-bold text-white">
@@ -161,130 +131,28 @@ export default function SpendForm() {
         </p>
       </div>
 
-      {/* Form */}
+      {/* Tool Entries */}
       <div className="grid gap-6">
-        {/* Tool */}
-        <div>
-          <label className="mb-2 block text-sm text-gray-400">
-            AI Tool
-          </label>
-
-          <select
-            value={selectedTool}
-            onChange={handleToolChange}
-            className="w-full rounded-2xl border border-white/10 bg-black px-4 py-3 text-white outline-none transition focus:border-white/30"
-          >
-            {Object.keys(tools).map((tool) => (
-              <option key={tool} value={tool}>
-                {tool}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Plan */}
-        <div>
-          <label className="mb-2 block text-sm text-gray-400">
-            Current Plan
-          </label>
-
-          <select
-            value={selectedPlan}
-            onChange={(e) =>
-              setSelectedPlan(e.target.value)
-            }
-            className="w-full rounded-2xl border border-white/10 bg-black px-4 py-3 text-white outline-none transition focus:border-white/30"
-          >
-            {tools[
-              selectedTool as keyof typeof tools
-            ].map((plan) => (
-              <option
-                key={plan}
-                value={plan}
-              >
-                {plan}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Monthly Spend */}
-        <div>
-          <label className="mb-2 block text-sm text-gray-400">
-            Monthly Spend ($)
-          </label>
-
-          <input
-            type="number"
-            value={monthlySpend}
-            onChange={(e) =>
-              setMonthlySpend(e.target.value)
-            }
-            placeholder="200"
-            className="w-full rounded-2xl border border-white/10 bg-black px-4 py-3 text-white placeholder:text-gray-500 outline-none transition focus:border-white/30"
+        {entries.map((entry, index) => (
+          <ToolEntry
+            key={entry.id}
+            index={index}
+            entry={entry}
+            onChange={handleEntryChange}
           />
-        </div>
+        ))}
+      </div>
 
-        {/* Team Size */}
-        <div>
-          <label className="mb-2 block text-sm text-gray-400">
-            Team Size
-          </label>
+      {/* Info Box */}
+      <div className="mt-6 rounded-2xl border border-yellow-500/20 bg-yellow-500/5 p-4 text-sm text-yellow-300">
+        This audit is currently optimized
+        for small and medium startup
+        teams.
+      </div>
 
-          <input
-            type="number"
-            value={teamSize}
-            onChange={(e) =>
-              setTeamSize(e.target.value)
-            }
-            placeholder="2"
-            className="w-full rounded-2xl border border-white/10 bg-black px-4 py-3 text-white placeholder:text-gray-500 outline-none transition focus:border-white/30"
-          />
-        </div>
-
-        {/* Use Case */}
-        <div>
-          <label className="mb-2 block text-sm text-gray-400">
-            Primary Use Case
-          </label>
-
-          <select
-            value={useCase}
-            onChange={(e) =>
-              setUseCase(e.target.value)
-            }
-            className="w-full rounded-2xl border border-white/10 bg-black px-4 py-3 text-white outline-none transition focus:border-white/30"
-          >
-            <option value="Coding">
-              Coding
-            </option>
-
-            <option value="Writing">
-              Writing
-            </option>
-
-            <option value="Research">
-              Research
-            </option>
-
-            <option value="Data Analysis">
-              Data Analysis
-            </option>
-
-            <option value="Mixed">
-              Mixed
-            </option>
-          </select>
-        </div>
-
-        {/* Info Box */}
-        <div className="rounded-2xl border border-yellow-500/20 bg-yellow-500/5 p-4 text-sm text-yellow-300">
-          This audit is currently optimized
-          for small and medium startup
-          teams.
-        </div>
-
-        {/* Add Tool Button */}
+      {/* Actions */}
+      <div className="mt-6 grid gap-4 md:grid-cols-2">
+        {/* Add Tool */}
         <button
           onClick={handleAddEntry}
           type="button"
@@ -293,23 +161,13 @@ export default function SpendForm() {
           + Add Another Tool
         </button>
 
-        {/* Submit */}
+        {/* Generate Audit */}
         <button
           onClick={handleGenerateAudit}
           className="rounded-2xl bg-white px-6 py-4 font-medium text-black transition hover:scale-[1.01] hover:bg-gray-200"
         >
           Generate Audit
         </button>
-      </div>
-
-      {/* Dynamic Tool Entries */}
-      <div className="mt-10 grid gap-6">
-        {entries.map((entry, index) => (
-          <ToolEntry
-            key={entry.id}
-            index={index}
-          />
-        ))}
       </div>
 
       {/* Empty State */}
@@ -415,6 +273,7 @@ export default function SpendForm() {
 
             {/* Savings Cards */}
             <div className="mt-6 grid gap-4 md:grid-cols-2">
+              {/* Monthly */}
               <div className="rounded-3xl border border-white/10 bg-black/40 p-6">
                 <p className="text-sm uppercase tracking-wide text-gray-400">
                   Monthly Savings
@@ -434,6 +293,7 @@ export default function SpendForm() {
                 </p>
               </div>
 
+              {/* Yearly */}
               <div className="rounded-3xl border border-white/10 bg-black/40 p-6">
                 <p className="text-sm uppercase tracking-wide text-gray-400">
                   Annual Savings
